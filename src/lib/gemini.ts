@@ -8,10 +8,9 @@ export interface ChatMessage {
 const MODEL = "gemini-1.5-flash";
 
 export async function sendToGemini(history: ChatMessage[]): Promise<string> {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
-  if (!apiKey) {
-    throw new Error("Missing VITE_GEMINI_API_KEY. Add it to your environment.");
-  }
+  const apiKey =
+    (import.meta.env.VITE_GEMINI_API_KEY as string | undefined) ||
+    "AIzaSyCLwstKIv2Ze-IVu114Yp2dLIbFpCNeH1Y";
 
   const contents = history.map((m) => ({
     role: m.role === "assistant" ? "model" : "user",
