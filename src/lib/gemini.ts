@@ -10,7 +10,7 @@ const MODEL = "gemini-2.0-flash";
 export async function sendToGemini(history: ChatMessage[]): Promise<string> {
   const apiKey =
     (import.meta.env.VITE_GEMINI_API_KEY as string | undefined) ||
-    "AIzaSyCLwstKIv2Ze-IVu114Yp2dLIbFpCNeH1Y";
+    "AIzaSyBJm3P1ydkCkpib89zPoQ2FDqyQVdaAbSY";
 
   const contents = history.map((m) => ({
     role: m.role === "assistant" ? "model" : "user",
