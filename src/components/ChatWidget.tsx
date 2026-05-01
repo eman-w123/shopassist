@@ -42,12 +42,17 @@ export const ChatWidget = forwardRef<ChatWidgetHandle, Props>(({ greeting }, ref
       setMessages((m) => [...m, { role: "assistant", content: reply }]);
     } catch (e) {
       console.error(e);
+      const msg = e instanceof Error ? e.message : String(e);
+      const friendly = /429|quota|RESOURCE_EXHAUSTED/i.test(msg)
+        ? "I've hit my usage limit for the moment. Please try again in a minute, or update the Gemini API key."
+        : /API key|API_KEY_INVALID|invalid/i.test(msg)
+        ? "The Gemini API key looks invalid. Please update it and try again."
+        : "Oops — I couldn't reach the assistant right now. Please check your connection or API key and try again.";
       setMessages((m) => [
         ...m,
         {
           role: "assistant",
-          content:
-            "Oops — I couldn't reach the assistant right now. Please check your connection or API key and try again.",
+          content: friendly,
         },
       ]);
     } finally {
