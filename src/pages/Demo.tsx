@@ -67,7 +67,7 @@ const Demo = () => {
         </section>
       </div>
 
-      <ChatWidget ref={widgetRef} />
+      <ChatWidget ref={widgetRef} storeSlug={DEMO_SLUG} storeName={storeName} />
     </div>
   );
 };
