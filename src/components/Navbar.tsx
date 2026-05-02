@@ -1,20 +1,15 @@
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, Sparkles } from "lucide-react";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
 
-const baseLinks = [
+const links = [
   { to: "/", label: "Home" },
   { to: "/demo", label: "Demo" },
+  { to: "/embed", label: "Embed" },
 ];
 
 export const Navbar = () => {
   useLocation();
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-  const links = user ? [...baseLinks, { to: "/dashboard", label: "Dashboard" }] : baseLinks;
-  const handleSignOut = async () => { await signOut(); navigate("/"); };
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
       <nav className="container flex h-16 items-center justify-between">
@@ -42,15 +37,6 @@ export const Navbar = () => {
               {l.label}
             </NavLink>
           ))}
-          {user ? (
-            <Button variant="ghost" size="sm" onClick={handleSignOut} className="rounded-full text-muted-foreground">
-              <LogOut className="h-4 w-4" /> Sign out
-            </Button>
-          ) : (
-            <Button asChild size="sm" className="ml-1 rounded-full bg-gradient-hero">
-              <Link to="/auth">Sign in</Link>
-            </Button>
-          )}
         </div>
       </nav>
     </header>

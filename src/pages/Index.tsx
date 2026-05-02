@@ -41,17 +41,14 @@ const Index = () => {
             AI Customer Support for Your Online Store. Answer product questions, recover carts, and close more sales — automatically.
           </p>
 
-          <p className="max-w-2xl text-base text-muted-foreground">
-            Add an AI shopping assistant to <span className="font-medium text-foreground">any</span> store. Manage your catalog, customize the look, and embed with one line of HTML.
-          </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg" className="rounded-full bg-gradient-hero px-7 shadow-glow hover:opacity-95">
-              <Link to="/auth">
-                Get started free <ArrowRight className="ml-1 h-4 w-4" />
+              <Link to="/demo">
+                Try Demo <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-full px-7">
-              <Link to="/demo">See live demo</Link>
+              <Link to="/embed">Get embed code</Link>
             </Button>
           </div>
         </div>
