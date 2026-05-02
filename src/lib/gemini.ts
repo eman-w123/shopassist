@@ -1,42 +1,27 @@
-import { SYSTEM_PROMPT } from "@/data/products";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
 }
 
-const MODEL = "gemini-2.0-flash";
+export async function sendChat(history: ChatMessage[]): Promise<string> {
+  // Convert to OpenAI-style roles for the gateway
+  const messages = history.map((m) => ({ role: m.role, content: m.content }));
 
-export async function sendToGemini(history: ChatMessage[]): Promise<string> {
-  const apiKey =
-    (import.meta.env.VITE_GEMINI_API_KEY as string | undefined) ||
-    "AIzaSyBJm3P1ydkCkpib89zPoQ2FDqyQVdaAbSY";
-
-  const contents = history.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
-  }));
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { role: "system", parts: [{ text: SYSTEM_PROMPT }] },
-      contents,
-      generationConfig: { temperature: 0.7, maxOutputTokens: 250 },
-    }),
+  const { data, error } = await supabase.functions.invoke("chat", {
+    body: { messages },
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Gemini API error (${res.status}): ${text}`);
+  if (error) {
+    // supabase-js throws FunctionsHttpError; try to extract status/message
+    const status = (error as any)?.context?.status;
+    if (status === 429) throw new Error("RATE_LIMIT");
+    if (status === 402) throw new Error("PAYMENT_REQUIRED");
+    throw new Error(error.message || "Network error");
   }
 
-  const data = await res.json();
-  const reply =
-    data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
-  if (!reply) throw new Error("Empty response from Gemini.");
-  return reply.trim();
+  if (data?.error) throw new Error(data.error);
+  if (!data?.reply) throw new Error("Empty reply");
+  return data.reply as string;
 }
