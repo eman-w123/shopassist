@@ -21,7 +21,10 @@ const EmbedView = () => {
     supabase.from("stores").select("slug,name,greeting,primary_color").eq("slug", slug).maybeSingle()
       .then(({ data }) => {
         if (!data) setNotFound(true);
-        else setStore(data as Store);
+        else {
+          setStore(data as Store);
+          try { window.parent?.postMessage({ type: "shopassist:color", color: (data as Store).primary_color }, "*"); } catch {}
+        }
       });
   }, [slug]);
 
