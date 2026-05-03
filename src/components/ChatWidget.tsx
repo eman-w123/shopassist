@@ -95,7 +95,7 @@ export const ChatWidget = forwardRef<ChatWidgetHandle, Props>(
           msg === "RATE_LIMIT"
             ? "I'm getting a lot of questions right now — please try again in a few seconds."
             : msg === "PAYMENT_REQUIRED"
-            ? "AI usage credits have run out. Please add credits in your Lovable workspace."
+            ? "AI usage credits have run out. Please add credits in your workspace."
             : "Sorry, I couldn't reach the assistant. Please check your connection and try again.";
         toast({ title: "Chat error", description: friendly, variant: "destructive" });
         setMessages((m) => [...m, { role: "assistant", content: friendly }]);
