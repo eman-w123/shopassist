@@ -1,20 +1,16 @@
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, Sparkles } from "lucide-react";
+import { Sparkles, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-
-const baseLinks = [
-  { to: "/", label: "Home" },
-  { to: "/demo", label: "Demo" },
-];
 
 export const Navbar = () => {
   useLocation();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const links = user ? [...baseLinks, { to: "/dashboard", label: "Dashboard" }] : baseLinks;
-  const handleSignOut = async () => { await signOut(); navigate("/"); };
+  const links = user
+    ? [{ to: "/", label: "Home" }, { to: "/dashboard", label: "Dashboard" }]
+    : [{ to: "/", label: "Home" }];
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
       <nav className="container flex h-16 items-center justify-between">
@@ -43,11 +39,11 @@ export const Navbar = () => {
             </NavLink>
           ))}
           {user ? (
-            <Button variant="ghost" size="sm" onClick={handleSignOut} className="rounded-full text-muted-foreground">
-              <LogOut className="h-4 w-4" /> Sign out
+            <Button size="sm" variant="ghost" onClick={async () => { await signOut(); navigate("/"); }} className="rounded-full">
+              <LogOut className="mr-1 h-4 w-4" />Sign out
             </Button>
           ) : (
-            <Button asChild size="sm" className="ml-1 rounded-full bg-gradient-hero">
+            <Button asChild size="sm" className="rounded-full">
               <Link to="/auth">Sign in</Link>
             </Button>
           )}

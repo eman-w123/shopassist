@@ -1,130 +1,132 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Store as StoreIcon, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import { Plus, Store as StoreIcon, ExternalLink, Settings } from "lucide-react";
 
 interface Store {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  primary_color: string;
+  id: string; name: string; slug: string; description: string | null;
+  primary_color: string; greeting: string; currency: string;
 }
 
-const slugify = (s: string) =>
-  s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48);
+function slugify(s: string) {
+  return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+}
 
-const Dashboard = () => {
-  const { user, loading } = useAuth();
+export default function Dashboard() {
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [stores, setStores] = useState<Store[]>([]);
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [desc, setDesc] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [showNew, setShowNew] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) navigate("/auth");
-  }, [user, loading, navigate]);
+    if (!authLoading && !user) navigate("/auth");
+  }, [authLoading, user, navigate]);
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("stores").select("*").eq("owner_id", user.id).order("created_at", { ascending: false })
-      .then(({ data, error }) => {
-        if (error) toast({ title: "Failed to load", description: error.message, variant: "destructive" });
-        else setStores((data ?? []) as Store[]);
-      });
+    (async () => {
+      const { data, error } = await supabase
+        .from("stores").select("*").eq("owner_id", user.id).order("created_at", { ascending: false });
+      if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+      setStores(data ?? []);
+      setLoading(false);
+    })();
   }, [user]);
 
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    setBusy(true);
-    const finalSlug = slug || slugify(name);
-    const { data, error } = await supabase.from("stores").insert({
-      owner_id: user.id,
-      name,
-      slug: finalSlug,
-      description: desc || null,
-    }).select().single();
-    setBusy(false);
-    if (error) {
-      toast({ title: "Couldn't create store", description: error.message, variant: "destructive" });
-      return;
+    setCreating(true);
+    let baseSlug = slugify(newName) || "store";
+    let slug = baseSlug;
+    for (let i = 0; i < 5; i++) {
+      const { data: existing } = await supabase.from("stores").select("id").eq("slug", slug).maybeSingle();
+      if (!existing) break;
+      slug = `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
     }
-    setOpen(false);
-    setName(""); setSlug(""); setDesc("");
+    const { data, error } = await supabase.from("stores").insert({
+      owner_id: user.id, name: newName, slug, description: newDesc,
+    }).select().single();
+    setCreating(false);
+    if (error) return toast({ title: "Error", description: error.message, variant: "destructive" });
+    setStores((s) => [data as Store, ...s]);
+    setShowNew(false); setNewName(""); setNewDesc("");
     navigate(`/dashboard/stores/${data.id}`);
   };
 
+  if (authLoading || loading) return <div className="container py-12 text-muted-foreground">Loading…</div>;
+
   return (
     <div className="container py-10">
-      <div className="mb-8 flex items-end justify-between gap-4">
+      <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Your stores</h1>
-          <p className="text-muted-foreground">Manage your AI assistants and embed them on any site.</p>
+          <p className="text-muted-foreground">Manage shop assistants for each of your businesses.</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="rounded-full bg-gradient-hero shadow-glow"><Plus className="h-4 w-4" /> New store</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Create a store</DialogTitle></DialogHeader>
-            <form onSubmit={create} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="n">Store name</Label>
-                <Input id="n" required value={name} onChange={(e) => { setName(e.target.value); setSlug(slugify(e.target.value)); }} />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="s">URL slug</Label>
-                <Input id="s" required value={slug} onChange={(e) => setSlug(slugify(e.target.value))} />
-                <p className="text-xs text-muted-foreground">Public URL: /embed/{slug || "your-slug"}</p>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="d">Description</Label>
-                <Textarea id="d" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="What do you sell?" />
-              </div>
-              <Button disabled={busy} className="rounded-full bg-gradient-hero">Create store</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setShowNew(true)} className="rounded-full">
+          <Plus className="mr-1 h-4 w-4" /> New store
+        </Button>
       </div>
 
+      {showNew && (
+        <form onSubmit={create} className="mb-8 grid gap-4 rounded-2xl border border-border bg-card p-6 shadow-card">
+          <div>
+            <Label>Store name</Label>
+            <Input required value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Acme Coffee" />
+          </div>
+          <div>
+            <Label>Short description</Label>
+            <Textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="What you sell, your vibe…" rows={3} />
+          </div>
+          <div className="flex gap-2">
+            <Button type="submit" disabled={creating} className="rounded-full">{creating ? "Creating…" : "Create store"}</Button>
+            <Button type="button" variant="outline" onClick={() => setShowNew(false)} className="rounded-full">Cancel</Button>
+          </div>
+        </form>
+      )}
+
       {stores.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-gradient-soft p-12 text-center">
-          <StoreIcon className="mx-auto mb-3 h-10 w-10 text-primary" />
-          <h2 className="text-xl font-semibold">No stores yet</h2>
-          <p className="mt-1 text-muted-foreground">Create your first store to start adding products.</p>
+        <div className="rounded-2xl border border-dashed border-border bg-gradient-soft p-16 text-center">
+          <StoreIcon className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+          <p className="mb-4 text-muted-foreground">No stores yet. Create your first one to get started.</p>
+          <Button onClick={() => setShowNew(true)} className="rounded-full">
+            <Plus className="mr-1 h-4 w-4" /> Create store
+          </Button>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {stores.map((s) => (
-            <Link key={s.id} to={`/dashboard/stores/${s.id}`} className="group rounded-2xl border border-border bg-card p-5 shadow-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-glow">
-              <div className="mb-3 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl" style={{ backgroundColor: s.primary_color }} />
-                <div className="min-w-0">
-                  <div className="truncate font-semibold">{s.name}</div>
-                  <div className="truncate text-xs text-muted-foreground">/{s.slug}</div>
+            <div key={s.id} className="flex flex-col rounded-2xl border border-border bg-card p-5 shadow-card">
+              <div className="mb-2 flex items-start justify-between gap-2">
+                <div>
+                  <h3 className="font-semibold">{s.name}</h3>
+                  <p className="text-xs text-muted-foreground">/{s.slug}</p>
                 </div>
+                <span className="h-6 w-6 rounded-full" style={{ background: s.primary_color }} />
               </div>
-              <p className="line-clamp-2 text-sm text-muted-foreground">{s.description || "No description yet."}</p>
-              <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary">
-                Manage <ExternalLink className="h-3 w-3" />
+              <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">{s.description || "No description"}</p>
+              <div className="mt-auto flex gap-2">
+                <Button asChild size="sm" variant="outline" className="flex-1 rounded-full">
+                  <Link to={`/dashboard/stores/${s.id}`}><Settings className="mr-1 h-3.5 w-3.5" />Manage</Link>
+                </Button>
+                <Button asChild size="sm" variant="ghost" className="rounded-full">
+                  <Link to={`/c/${s.slug}`} target="_blank"><ExternalLink className="h-3.5 w-3.5" /></Link>
+                </Button>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}
     </div>
   );
-};
-
-export default Dashboard;
+}

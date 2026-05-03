@@ -3,15 +3,14 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index.tsx";
-import Demo from "./pages/Demo.tsx";
 import Auth from "./pages/Auth.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import StoreEditor from "./pages/StoreEditor.tsx";
-import EmbedView from "./pages/EmbedView.tsx";
+import PublicChat from "./pages/PublicChat.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Layout from "./components/Layout.tsx";
-import { AuthProvider } from "./hooks/useAuth.tsx";
 
 const queryClient = new QueryClient();
 
@@ -23,12 +22,9 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            {/* Public widget — no chrome, used inside iframe */}
-            <Route path="/embed/:slug" element={<EmbedView />} />
-
+            <Route path="/c/:slug" element={<PublicChat />} />
             <Route element={<Layout />}>
               <Route path="/" element={<Index />} />
-              <Route path="/demo" element={<Demo />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/dashboard/stores/:id" element={<StoreEditor />} />

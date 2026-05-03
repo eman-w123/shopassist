@@ -5,6 +5,13 @@ export interface ChatMessage {
   content: string;
 }
 
+export interface SendChatOptions {
+  storeId?: string;
+  storeSlug?: string;
+  conversationId?: string;
+  visitorId?: string;
+}
+
 export interface SendChatResult {
   reply: string;
   conversationId?: string;
@@ -12,13 +19,12 @@ export interface SendChatResult {
 
 export async function sendChat(
   history: ChatMessage[],
-  storeSlug: string,
-  conversationId?: string,
+  opts: SendChatOptions = {},
 ): Promise<SendChatResult> {
   const messages = history.map((m) => ({ role: m.role, content: m.content }));
 
   const { data, error } = await supabase.functions.invoke("chat", {
-    body: { messages, storeSlug, conversationId },
+    body: { messages, ...opts },
   });
 
   if (error) {
