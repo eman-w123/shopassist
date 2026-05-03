@@ -3,9 +3,12 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index.tsx";
-import Demo from "./pages/Demo.tsx";
-import Embed from "./pages/Embed.tsx";
+import Auth from "./pages/Auth.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
+import StoreEditor from "./pages/StoreEditor.tsx";
+import PublicChat from "./pages/PublicChat.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Layout from "./components/Layout.tsx";
 
@@ -17,14 +20,18 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/demo" element={<Demo />} />
-            <Route path="/embed" element={<Embed />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/c/:slug" element={<PublicChat />} />
+            <Route element={<Layout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard/stores/:id" element={<StoreEditor />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

@@ -43,12 +43,12 @@ const Index = () => {
 
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg" className="rounded-full bg-gradient-hero px-7 shadow-glow hover:opacity-95">
-              <Link to="/demo">
-                Try Demo <ArrowRight className="ml-1 h-4 w-4" />
+              <Link to="/auth">
+                Get started <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-full px-7">
-              <Link to="/embed">Get embed code</Link>
+              <Link to="/dashboard">Open dashboard</Link>
             </Button>
           </div>
         </div>
