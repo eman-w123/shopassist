@@ -126,6 +126,7 @@ export default function StoreEditor() {
             <ChatWidget
               embedded
               storeId={store.id}
+              storeSlug={store.slug}
               storeName={store.name}
               greeting={store.greeting}
               primaryColor={store.primary_color}

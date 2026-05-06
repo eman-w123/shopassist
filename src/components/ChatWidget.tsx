@@ -13,6 +13,7 @@ export interface ChatWidgetHandle {
 
 interface Props {
   storeSlug: string;
+  storeId?: string;
   storeName?: string;
   greeting?: string;
   primaryColor?: string;
@@ -27,7 +28,7 @@ const SUGGESTIONS = [
 ];
 
 export const ChatWidget = forwardRef<ChatWidgetHandle, Props>(
-  ({ storeSlug, storeName = "ShopAssist", greeting, primaryColor, storageKey, embedded = false }, ref) => {
+  ({ storeSlug, storeId, storeName = "ShopAssist", greeting, primaryColor, storageKey, embedded = false }, ref) => {
     const key = storageKey ?? `shopassist:${storeSlug}:history`;
     const convKey = `shopassist:${storeSlug}:conv`;
     const greet = greeting ?? `Hi! I'm here to help you shop at **${storeName}** 👋`;
@@ -85,7 +86,7 @@ export const ChatWidget = forwardRef<ChatWidgetHandle, Props>(
       setInput("");
       setLoading(true);
       try {
-        const { reply, conversationId: cid } = await sendChat(next, storeSlug, conversationId);
+        const { reply, conversationId: cid } = await sendChat(next, { storeSlug, storeId, conversationId });
         if (cid) setConversationId(cid);
         setMessages((m) => [...m, { role: "assistant", content: reply }]);
       } catch (e) {
